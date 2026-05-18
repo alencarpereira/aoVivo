@@ -41,9 +41,11 @@
 
         <label>Finalizações Visitante</label>
         <input type="number" id="chuteFora">
+        <label>Escanteios Casa</label>
+        <input type="number" id="escanteioCasa" value="0">
 
-        <label>Escanteios</label>
-        <input type="number" id="escanteios">
+        <label>Escanteios Visitante</label>
+        <input type="number" id="escanteioFora" value="0">
 
         <button onclick="calcular()">Analisar Jogo</button>
 
@@ -111,6 +113,73 @@
             <span>ALERTA GOL</span>
             <p>Intensidade: Baixo / Médio / Alto / Gol Iminente</p>
         </div>
+    </div>
+
+    <div class="manual-card buy-goal">
+        <h2>🟢 BUY GOAL</h2>
+
+        <p><strong>Entrar quando:</strong></p>
+
+        <ul>
+            <li>Probabilidade de gol ≥ 80%</li>
+            <li>Ataques totais ≥ 25</li>
+            <li>Finalizações totais ≥ 8</li>
+            <li>Escanteios ≥ 7</li>
+            <li>Momentum forte</li>
+            <li>Alerta = ALTO ou GOL IMINENTE</li>
+        </ul>
+
+        <p><strong>Melhor momento:</strong> 25' até 80'</p>
+    </div>
+
+    <div class="manual-card lay-under">
+        <h2>🔴 LAY UNDER</h2>
+
+        <ul>
+            <li>Minuto &gt; 70</li>
+            <li>Probabilidade de gol ≥ 88%</li>
+            <li>Finalizações totais ≥ 14</li>
+            <li>Escanteios ≥ 7</li>
+            <li>Pressão extrema</li>
+            <li>Jogo totalmente aberto</li>
+        </ul>
+
+        <p><strong>Placar ideal:</strong> 0x0 • 1x0 • 1x1</p>
+    </div>
+
+    <div class="manual-card escanteio">
+        <h2>🚩 ESCANTEIO ASIÁTICO</h2>
+
+        <p><strong>Entrar quando:</strong></p>
+
+        <ul>
+            <li>Ataques totais ≥ 20</li>
+            <li>Escanteios atuais ≥ 5</li>
+            <li>Finalizações totais ≥ 8</li>
+            <li>Pressão contínua</li>
+            <li>Time atacando pelos lados</li>
+            <li>Favorito pressionando</li>
+        </ul>
+
+        <p><strong>Melhor momento:</strong> 20' até 75'</p>
+
+        <p><strong>Bom cenário:</strong></p>
+
+        <ul>
+            <li>Jogo aberto</li>
+            <li>Placar apertado</li>
+            <li>Time perdendo pressionando</li>
+            <li>Muitos cruzamentos</li>
+        </ul>
+
+        <p><strong>Evitar:</strong></p>
+
+        <ul>
+            <li>Jogo parado</li>
+            <li>Muitas faltas</li>
+            <li>Time satisfeito com resultado</li>
+            <li>Poucas chegadas na área</li>
+        </ul>
     </div>
 
     <script src="script.js"></script>

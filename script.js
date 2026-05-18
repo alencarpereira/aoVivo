@@ -16,7 +16,8 @@ function calcular() {
         finalCasa: Number(document.getElementById("chuteCasa").value),
         finalVisitante: Number(document.getElementById("chuteFora").value),
 
-        escanteios: Number(document.getElementById("escanteios").value)
+        escanteioCasa: Number(document.getElementById("escanteioCasa").value),
+        escanteioVisitante: Number(document.getElementById("escanteioFora").value)
 
     }
 
@@ -68,7 +69,10 @@ function analisarJogo(dados) {
     let finalCasa = dados.finalCasa
     let finalVisitante = dados.finalVisitante
 
-    let escanteios = dados.escanteios
+    let escanteioCasa = dados.escanteioCasa
+    let escanteioVisitante = dados.escanteioVisitante
+
+    let escanteios = escanteioCasa + escanteioVisitante
 
     let minuto = dados.minuto
 
@@ -81,10 +85,18 @@ function analisarJogo(dados) {
     let lambdaTotal = lambdaCasaAjustado + lambdaVisitanteAjustado
 
     // PRESSÃO
-    let pressaoCasa = (ataquesCasa / 10) + (finalCasa / 3) + (escanteios / 6)
-    let pressaoVisitante = (ataquesVisitante / 10) + (finalVisitante / 3)
+    let pressaoCasa =
+        (ataquesCasa * 0.08) +
+        (finalCasa * 0.32) +
+        (escanteioCasa * 0.18)
 
-    let indicePressao = pressaoCasa / (pressaoVisitante + 0.01)
+    let pressaoVisitante =
+        (ataquesVisitante * 0.08) +
+        (finalVisitante * 0.32) +
+        (escanteioVisitante * 0.18)
+
+    let indicePressao =
+        (pressaoCasa + 1) / (pressaoVisitante + 1)
 
     // MOMENTUM
     let momentum = pressaoCasa - pressaoVisitante
@@ -95,8 +107,14 @@ function analisarJogo(dados) {
     }
 
     function fatorial(n) {
-        if (n === 0) return 1
-        return n * fatorial(n - 1)
+
+        let resultado = 1
+
+        for (let i = 2; i <= n; i++) {
+            resultado *= i
+        }
+
+        return resultado
     }
 
     // PROBABILIDADE RESULTADO
@@ -128,16 +146,17 @@ function analisarJogo(dados) {
     if (probCasa > probVisitante && probCasa > probEmpate) favorito = "Casa"
     if (probVisitante > probCasa && probVisitante > probEmpate) favorito = "Visitante"
 
-    // PRESSÃO REAL (melhoria)
-    let pressaoTotal = ataquesCasa + ataquesVisitante
-
     // PROBABILIDADE DE GOL
     let ataquesTotal = ataquesCasa + ataquesVisitante
     let finalTotal = finalCasa + finalVisitante
 
-    let fatorPressao = (ataquesTotal / 20) + (finalTotal / 10) + (escanteios / 12)
+    let fatorPressao = Math.min(
+        (pressaoCasa + pressaoVisitante) * 0.9,
+        8
+    )
 
-    let probGol = 1 - Math.exp(-(lambdaTotal * fatorPressao))
+    let probGol =
+        1 - Math.exp(-((lambdaTotal * fatorPressao) / 3))
 
     // AJUSTE PELO TEMPO (melhoria)
     if (minuto >= 70) probGol *= 1.25
@@ -150,11 +169,13 @@ function analisarJogo(dados) {
     probGol *= 100
 
     // GOL NOS PRÓXIMOS 5 MIN
-    let taxaPorMinuto = lambdaTotal / tempoRestante
+    let taxaPorMinuto =
+        (lambdaTotal / tempoRestante) *
+        (1 + (fatorPressao / 10))
 
     let probGol5Min = 1 - Math.exp(-(taxaPorMinuto * 5))
 
-    probGol5Min *= (1 + Math.abs(momentum) * 0.15)
+    probGol5Min *= (1 + Math.min(Math.abs(momentum), 2) * 0.12)
 
     probGol5Min = Math.min(probGol5Min, 1) * 100
 
@@ -189,34 +210,101 @@ function analisarJogo(dados) {
     // PRÓXIMO GOL
     let forcaCasa = lambdaCasaAjustado + (pressaoCasa * 0.15)
     let forcaVisitante = lambdaVisitanteAjustado + (pressaoVisitante * 0.15)
-
     let proximoGol = "Equilibrado"
 
-    if (momentum > 1) proximoGol = "Casa"
-    else if (momentum < -1) proximoGol = "Visitante"
+    // 🔥 Dominância forte
+    if (indicePressao > 1.6 && momentum > 0.8) {
+
+        proximoGol = "Casa"
+
+    }
+
+    else if (indicePressao < 0.62 && momentum < -0.8) {
+
+        proximoGol = "Visitante"
+
+    }
+
+    // ⚖️ Equilíbrio → usa força combinada
     else {
 
-        if (forcaCasa > forcaVisitante) proximoGol = "Casa"
-        if (forcaVisitante > forcaCasa) proximoGol = "Visitante"
+        if (forcaCasa > forcaVisitante) {
+
+            proximoGol = "Casa"
+
+        }
+
+        else if (forcaVisitante > forcaCasa) {
+
+            proximoGol = "Visitante"
+
+        }
 
     }
 
     // SINAL TRADER MELHORADO
     let sinal = "WAIT"
 
-    if (probGol > 80 && minuto > 25) sinal = "BUY GOAL"
+    // 🔴 LAY UNDER → prioridade máxima
+    if (
+        probGol > 88 &&
+        minuto > 70 &&
+        finalTotal >= 14
+    ) {
 
-    if (indicePressao > 2 && Math.abs(momentum) > 1) sinal = "PRESSÃO FORTE"
+        sinal = "LAY UNDER"
 
-    if (probGol > 88 && minuto > 70) sinal = "LAY UNDER"
+    }
 
-    if (finalTotal > 22 && escanteios > 7) sinal = "BUY GOAL"
+    // 🟢 BUY GOAL
+    else if (
+
+        (
+            probGol > 80 &&
+            minuto > 25 &&
+            finalTotal >= 8 &&
+            ataquesTotal >= 25
+        )
+
+        ||
+
+        (
+            finalTotal > 22 &&
+            escanteios > 7
+        )
+
+    ) {
+
+        sinal = "BUY GOAL"
+
+    }
+
+    // 🟡 PRESSÃO FORTE
+    else if (
+        (
+            indicePressao > 1.6 ||
+            indicePressao < 0.62
+        )
+        &&
+        Math.abs(momentum) > 0.8
+    ) {
+
+        sinal = "PRESSÃO FORTE"
+
+    }
+
+    // ⚪ WAIT
+    else {
+
+        sinal = "WAIT"
+
+    }
 
     // PLACARES PROVÁVEIS
     let placares = []
 
-    for (let casa = 0; casa <= 3; casa++) {
-        for (let visitante = 0; visitante <= 3; visitante++) {
+    for (let casa = 0; casa <= 5; casa++) {
+        for (let visitante = 0; visitante <= 5; visitante++) {
 
             let prob = poisson(lambdaCasaAjustado, casa) * poisson(lambdaVisitanteAjustado, visitante)
 
