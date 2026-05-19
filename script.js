@@ -34,6 +34,7 @@ function calcular() {
     document.getElementById("probGol").innerHTML =
         r.probGol + "<br>" +
         "⏱ Gol próximos 5 min: " + r.probGol5Min + "<br><br>" +
+        "📈 Momentum: " + r.momentum + "<br>" +
         "🚨 Alerta Gol: " + r.alertaGol + "<br>" +
         "⚽ Over 1.5: " + r.over15 + "<br>" +
         "⚽ Over 2.5: " + r.over25 + "<br>" +
@@ -99,7 +100,9 @@ function analisarJogo(dados) {
         (pressaoCasa + 1) / (pressaoVisitante + 1)
 
     // MOMENTUM
-    let momentum = pressaoCasa - pressaoVisitante
+    let momentum =
+        (pressaoCasa - pressaoVisitante) /
+        (pressaoCasa + pressaoVisitante + 1)
 
     // FUNÇÕES POISSON
     function poisson(lambda, k) {
@@ -213,13 +216,13 @@ function analisarJogo(dados) {
     let proximoGol = "Equilibrado"
 
     // 🔥 Dominância forte
-    if (indicePressao > 1.6 && momentum > 0.8) {
+    if (indicePressao > 1.6 && momentum > 0.35) {
 
         proximoGol = "Casa"
 
     }
 
-    else if (indicePressao < 0.62 && momentum < -0.8) {
+    else if (indicePressao < 0.62 && momentum < -0.35) {
 
         proximoGol = "Visitante"
 
@@ -286,7 +289,7 @@ function analisarJogo(dados) {
             indicePressao < 0.62
         )
         &&
-        Math.abs(momentum) > 0.8
+        Math.abs(momentum) > 0.35
     ) {
 
         sinal = "PRESSÃO FORTE"
@@ -334,6 +337,8 @@ function analisarJogo(dados) {
         probGol: probGol.toFixed(1) + "%",
 
         probGol5Min: probGol5Min.toFixed(1) + "%",
+
+        momentum: momentum.toFixed(2),
 
         alertaGol: alertaGol,
 
